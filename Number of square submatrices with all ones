@@ -1,0 +1,95 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Recursive function with memoization
+int rec(int i, int j, vector<vector<int>>& matrix, vector<vector<int>>& dp) {
+    if (i < 0 || j < 0) return 0;  // Out of bounds base case
+
+    if (dp[i][j] != -1) return dp[i][j];
+
+    if (matrix[i][j] == 0) return dp[i][j] = 0;
+
+    // Take minimum of left, top, and diagonal-top-left, then add 1
+    return dp[i][j] = 1 + min({rec(i - 1, j, matrix, dp), 
+                               rec(i - 1, j - 1, matrix, dp), 
+                               rec(i, j - 1, matrix, dp)});
+}
+
+// Tabulation (Bottom-Up DP)
+int tabulation(vector<vector<int>>& matrix) {
+    int n = matrix.size(), m = matrix[0].size();
+    vector<vector<int>> dp(n, vector<int>(m, 0));
+
+    int totalCount = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (i == 0 || j == 0) {
+                dp[i][j] = matrix[i][j];  // Base case (first row and column)
+            } else if (matrix[i][j] == 1) {
+                dp[i][j] = 1 + min({dp[i - 1][j], dp[i - 1][j - 1], dp[i][j - 1]});
+            }
+            totalCount += dp[i][j]; // Summing up the squares
+        }
+    }
+
+    return totalCount;
+}
+
+// Space Optimized DP
+int spaceOptimized(vector<vector<int>>& matrix) {
+    int n = matrix.size(), m = matrix[0].size();
+    vector<int> prev(m, 0), curr(m, 0);
+
+    int totalCount = 0;
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (i == 0 || j == 0) {
+                curr[j] = matrix[i][j];
+            } else if (matrix[i][j] == 1) {
+                curr[j] = 1 + min({prev[j], prev[j - 1], curr[j - 1]});
+            } else {
+                curr[j] = 0;
+            }
+            totalCount += curr[j];
+        }
+        prev = curr;  // Move current row to previous row for next iteration
+    }
+
+    return totalCount;
+}
+
+int main() {
+    int n, m;
+    cout << "Enter number of rows: ";
+    cin >> n;
+    cout << "Enter number of columns: ";
+    cin >> m;
+
+    vector<vector<int>> matrix(n, vector<int>(m));
+    cout << "Enter matrix values (0s and 1s only):\n";
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            cin >> matrix[i][j];
+        }
+    }
+
+    // Recursive Approach (With Memoization)
+    vector<vector<int>> dp(n, vector<int>(m, -1));
+    int recursiveCount = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            recursiveCount += rec(i, j, matrix, dp);
+        }
+    }
+    cout << "Number of square submatrices (Recursive + Memoization): " << recursiveCount << endl;
+
+    // DP Tabulation
+    cout << "Number of square submatrices (Tabulation): " << tabulation(matrix) << endl;
+
+    // DP Space Optimized
+    cout << "Number of square submatrices (Space Optimized): " << spaceOptimized(matrix) << endl;
+
+    return 0;
+}
